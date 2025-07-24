@@ -13,3 +13,4 @@ DEFAULT_JWT_AUDIENCE = "spark-client"
 DEFAULT_JWT_ISSUER = "spark-connect-proxy"
 DEFAULT_JWT_SUBJECT = "spark-client"
 DEFAULT_JWT_LIFETIME: int = 3600 * 24  # 1 day
+DEFAULT_GRPC_MAX_MESSAGE_SIZE: int = 128 * 1024 * 1024 # 128mb spark connect default setting
