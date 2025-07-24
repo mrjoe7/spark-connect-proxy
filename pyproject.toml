@@ -17,10 +17,10 @@ name = "spark-connect-proxy"
 version = "0.0.12"
 description = "A reverse proxy server which allows secure connectivity to a Spark Connect server"
 readme = "README.md"
-authors = [{ name = "Philip Moore", email = "prmoore77@hotmail.com" }]
-license = { file = "LICENSE" }
+authors = [{ name = "Philip Moore", email = "philip@gizmodata.com" }]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
@@ -32,7 +32,7 @@ dependencies = [
     "grpcio-channelz==1.66.*",
     "grpcio-status==1.66.*",
     "pyjwt==2.9.*",
-    "python-dotenv==1.0.*",
+    "python-dotenv==1.1.*",
     "pyarrow_hotfix==0.6.*",
     "protobuf==5.27.2",
     "pyOpenSSL==24.2.1"
