@@ -14,13 +14,13 @@ include = ["*"]  # package names should match these glob patterns (["*"] by defa
 
 [project]
 name = "spark-connect-proxy"
-version = "0.0.12"
+version = "0.0.13"
 description = "A reverse proxy server which allows secure connectivity to a Spark Connect server"
 readme = "README.md"
-authors = [{ name = "Philip Moore", email = "prmoore77@hotmail.com" }]
-license = { file = "LICENSE" }
+authors = [{ name = "Philip Moore", email = "philip@gizmodata.com" }]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
@@ -32,7 +32,7 @@ dependencies = [
     "grpcio-channelz==1.66.*",
     "grpcio-status==1.66.*",
     "pyjwt==2.9.*",
-    "python-dotenv==1.0.*",
+    "python-dotenv==1.1.*",
     "pyarrow_hotfix==0.6.*",
     "protobuf==5.27.2",
     "pyOpenSSL==24.2.1"
@@ -63,7 +63,7 @@ spark-connect-proxy-create-tls-keypair = "spark_connect_proxy.utilities.tls_util
 spark-connect-proxy-ibis-client-example = "spark_connect_proxy.client_examples.ibis_client_example:click_run_client_example"
 
 [tool.bumpver]
-current_version = "0.0.11"
+current_version = "0.0.13"
 version_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
