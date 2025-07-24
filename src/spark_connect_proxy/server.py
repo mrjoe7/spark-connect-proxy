@@ -10,7 +10,7 @@ import pyspark.sql.connect.proto.base_pb2_grpc as pb2_grpc
 from grpc_channelz.v1 import channelz
 
 from . import __version__ as spark_connect_proxy_version
-from .config import SPARK_CONNECT_SERVER_DEFAULT_URL, SERVER_PORT, DEFAULT_JWT_AUDIENCE
+from .config import SPARK_CONNECT_SERVER_DEFAULT_URL, SERVER_PORT, DEFAULT_JWT_AUDIENCE, DEFAULT_GRPC_MAX_MESSAGE_SIZE
 from .logger import logger
 from .security import BearerTokenAuthInterceptor
 
@@ -37,28 +37,54 @@ class SparkConnectProxyServicer(pb2_grpc.SparkConnectServiceServicer):
         self.stub = stub
 
     def ExecutePlan(self, request, context):
-        return self.stub.ExecutePlan(request=request)
+        try:
+            for response in self.stub.ExecutePlan(request=request):
+                yield response
+        except grpc.RpcError as e:
+            context.abort(e.code(), e.details())
 
     def AnalyzePlan(self, request, context):
-        return self.stub.AnalyzePlan(request=request)
+        try:
+            return self.stub.AnalyzePlan(request=request)
+        except grpc.RpcError as e:
+            context.abort(e.code(), e.details())
 
     def Config(self, request, context):
-        return self.stub.Config(request=request)
+        try:
+            return self.stub.Config(request=request)
+        except grpc.RpcError as e:
+            context.abort(e.code(), e.details())
 
     def AddArtifacts(self, request_iterator, context):
-        return self.stub.AddArtifacts(request=request_iterator)
+        try:
+            return self.stub.AddArtifacts(request=request_iterator)
+        except grpc.RpcError as e:
+            context.abort(e.code(), e.details())
 
     def ArtifactStatus(self, request, context):
-        return self.stub.ArtifactStatus(request=request)
+        try:
+            return self.stub.ArtifactStatus(request=request)
+        except grpc.RpcError as e:
+            context.abort(e.code(), e.details())
 
     def Interrupt(self, request, context):
-        return self.stub.Interrupt(request=request)
+        try:
+            return self.stub.Interrupt(request=request)
+        except grpc.RpcError as e:
+            context.abort(e.code(), e.details())
 
     def ReattachExecute(self, request, context):
-        return self.stub.ReattachExecute(request=request)
+        try:
+            for response in self.stub.ReattachExecute(request=request):
+                yield response
+        except grpc.RpcError as e:
+            context.abort(e.code(), e.details())
 
     def ReleaseExecute(self, request, context):
-        return self.stub.ReleaseExecute(request=request)
+        try:
+            return self.stub.ReleaseExecute(request=request)
+        except grpc.RpcError as e:
+            context.abort(e.code(), e.details())
 
 
 def serve(
@@ -71,6 +97,7 @@ def serve(
         jwt_audience: Optional[str] = None,
         secret_key: Optional[str] = None,
         log_level: str = "INFO",
+        grpc_max_message_size: int = DEFAULT_GRPC_MAX_MESSAGE_SIZE,
 ):
     """Start the Spark Connect Proxy server."""
     if version:
@@ -86,7 +113,13 @@ def serve(
     logger.info(msg=f"Proxying Spark Connect server at: {spark_connect_server_url}")
 
     # Set up the Spark Connect gRPC client (without TLS)
-    channel = grpc.insecure_channel(target=spark_connect_server_url)
+    channel = grpc.insecure_channel(
+        target=spark_connect_server_url,
+        options=[
+            ("grpc.max_send_message_length", grpc_max_message_size),
+            ("grpc.max_receive_message_length", grpc_max_message_size)
+        ],
+    )
     stub = pb2_grpc.SparkConnectServiceStub(channel=channel)
 
     interceptors = [LoggingInterceptor()]
@@ -101,7 +134,12 @@ def serve(
         logger.warning(msg="Token authentication is disabled - client connections will be insecure.")
 
     server = grpc.server(
-        thread_pool=futures.ThreadPoolExecutor(max_workers=10), interceptors=interceptors
+        thread_pool=futures.ThreadPoolExecutor(max_workers=10),
+        interceptors=interceptors,
+        options=[
+            ("grpc.max_send_message_length", grpc_max_message_size),
+            ("grpc.max_receive_message_length", grpc_max_message_size)
+        ],
     )
 
     # Add the proxy service
@@ -213,6 +251,14 @@ def serve(
     required=True,
     help="The logging level to use for the server.",
 )
+@click.option(
+    "--grpc-max-message-size",
+    type=int,
+    default=os.getenv("GRPC_MAX_MESSAGE_SIZE", DEFAULT_GRPC_MAX_MESSAGE_SIZE),
+    show_default=True,
+    required=False,
+    help="Sets the maximum message in bytes size for the gRPC requests. -1 means unlimited.",
+)
 def click_serve(
         version: bool,
         spark_connect_server_url: str,
@@ -223,6 +269,7 @@ def click_serve(
         jwt_audience: str,
         secret_key: str,
         log_level: str,
+        grpc_max_message_size: int,
 ):
     return serve(**locals())
 
