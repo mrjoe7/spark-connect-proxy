@@ -55,9 +55,9 @@ class SparkConnectProxyServicer(pb2_grpc.SparkConnectServiceServicer):
         except grpc.RpcError as e:
             context.abort(e.code(), e.details())
 
-    def AddArtifacts(self, request_iterator, context):
+    def AddArtifacts(self, request, context):
         try:
-            return self.stub.AddArtifacts(request=request_iterator)
+            return self.stub.AddArtifacts(request=request)
         except grpc.RpcError as e:
             context.abort(e.code(), e.details())
 
